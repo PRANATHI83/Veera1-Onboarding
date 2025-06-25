@@ -735,489 +735,491 @@ h3 {
     </div>
 <script>
     let allRecords = [];
-let currentIndex = -1;
+    let currentIndex = -1;
 
-function sanitizeFileName(fileName) {
-    return fileName ? fileName.replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '_') : 'unknown';
-}
+    function sanitizeFileName(fileName) {
+        return fileName ? fileName.replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '_') : 'unknown';
+    }
 
-function getMimeType(fileName) {
-    if (!fileName) return 'application/octet-stream';
-    const ext = fileName.split('.').pop().toLowerCase();
-    const mimeTypes = {
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'pdf': 'application/pdf',
-        'doc': 'application/msword',
-        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    };
-    return mimeTypes[ext] || 'application/octet-stream';
-}
+    function getMimeType(fileName) {
+        if (!fileName) return 'application/octet-stream';
+        const ext = fileName.split('.').pop().toLowerCase();
+        const mimeTypes = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'pdf': 'application/pdf',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        };
+        return mimeTypes[ext] || 'application/octet-stream';
+    }
 
-function formatDate(dateStr) {
-    if (!dateStr) return 'N/A';
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-}
+    function formatDate(dateStr) {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    }
 
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.classList.add('fade-out');
-    setTimeout(() => {
-        modal.style.display = 'none';
-        modal.classList.remove('fade-out');
-    }, 300);
-}
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('fade-out');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.classList.remove('fade-out');
+        }, 300);
+    }
 
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.style.display = 'flex';
-    const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = 'flex';
+        const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
 
-    modal.addEventListener('keydown', function trapFocus(e) {
-        if (e.key === 'Tab') {
-            if (e.shiftKey && document.activeElement === firstElement) {
-                e.preventDefault();
-                lastElement.focus();
-            } else if (!e.shiftKey && document.activeElement === lastElement) {
-                e.preventDefault();
-                firstElement.focus();
+        modal.addEventListener('keydown', function trapFocus(e) {
+            if (e.key === 'Tab') {
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
             }
+        });
+
+        firstElement.focus();
+    }
+
+    function displayRecords(records) {
+        const onboardingTable = document.querySelector('#onboarding-table tbody');
+        const noDataMessage = document.getElementById('no-data-message');
+        onboardingTable.innerHTML = '';
+        if (!records || records.length === 0) {
+            noDataMessage.style.display = 'flex';
+            noDataMessage.textContent = 'No onboarding records found.';
+            return;
         }
-    });
+        noDataMessage.style.display = 'none';
+        records.forEach(record => {
+            const row = document.createElement('tr');
+            const initial = record.full_name ? record.full_name.charAt(0).toUpperCase() : '?';
 
-    firstElement.focus();
-}
+            const employeeCell = document.createElement('td');
+            employeeCell.className = 'employee-cell';
+            employeeCell.setAttribute('data-label', 'Employee');
 
-function displayRecords(records) {
-    const onboardingTable = document.querySelector('#onboarding-table tbody');
-    const noDataMessage = document.getElementById('no-data-message');
-    onboardingTable.innerHTML = '';
-    if (!records || records.length === 0) {
+            const initialDiv = document.createElement('div');
+            initialDiv.className = 'employee-initial';
+            initialDiv.textContent = initial;
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'employee-details';
+            detailsDiv.textContent = record.full_name || 'N/A';
+
+            const emailSpan = document.createElement('span');
+            emailSpan.textContent = record.email || 'N/A';
+
+            detailsDiv.appendChild(emailSpan);
+            employeeCell.appendChild(initialDiv);
+            employeeCell.appendChild(detailsDiv);
+
+            const deptCell = document.createElement('td');
+            deptCell.setAttribute('data-label', 'Department');
+            deptCell.textContent = record.department || 'N/A';
+
+            const jobRoleCell = document.createElement('td');
+            jobRoleCell.setAttribute('data-label', 'Job Role');
+            jobRoleCell.textContent = record.job_role || 'N/A';
+
+            const startDateCell = document.createElement('td');
+            startDateCell.setAttribute('data-label', 'Start Date');
+            startDateCell.textContent = formatDate(record.job_start_date);
+
+            const statusCell = document.createElement('td');
+            statusCell.setAttribute('data-label', 'Status');
+            const statusSpan = document.createElement('span');
+            statusSpan.className = `status-badge ${record.status.toLowerCase()}`;
+            statusSpan.textContent = record.status;
+            statusCell.appendChild(statusSpan);
+
+            const actionCell = document.createElement('td');
+            actionCell.className = 'action-buttons';
+            actionCell.setAttribute('data-label', 'Actions');
+            const viewButton = document.createElement('button');
+            viewButton.className = 'btn';
+            viewButton.title = 'View';
+            viewButton.innerHTML = '<i class="fas fa-eye"></i> View';
+            viewButton.onclick = () => viewRecord(record.id);
+            actionCell.appendChild(viewButton);
+
+            row.appendChild(employeeCell);
+            row.appendChild(deptCell);
+            row.appendChild(jobRoleCell);
+            row.appendChild(startDateCell);
+            row.appendChild(statusCell);
+            row.appendChild(actionCell);
+
+            onboardingTable.appendChild(row);
+        });
+    }
+
+    async function loadData() {
+        const noDataMessage = document.getElementById('no-data-message');
         noDataMessage.style.display = 'flex';
-        noDataMessage.textContent = 'No onboarding records found.';
-        return;
-    }
-    noDataMessage.style.display = 'none';
-    records.forEach(record => {
-        const row = document.createElement('tr');
-        const initial = record.full_name ? record.full_name.charAt(0).toUpperCase() : '?';
-
-        const employeeCell = document.createElement('td');
-        employeeCell.className = 'employee-cell';
-        employeeCell.setAttribute('data-label', 'Employee');
-
-        const initialDiv = document.createElement('div');
-        initialDiv.className = 'employee-initial';
-        initialDiv.textContent = initial;
-
-        const detailsDiv = document.createElement('div');
-        detailsDiv.className = 'employee-details';
-        detailsDiv.textContent = record.full_name || 'N/A';
-
-        const emailSpan = document.createElement('span');
-        emailSpan.textContent = record.email || 'N/A';
-
-        detailsDiv.appendChild(emailSpan);
-        employeeCell.appendChild(initialDiv);
-        employeeCell.appendChild(detailsDiv);
-
-        const deptCell = document.createElement('td');
-        deptCell.setAttribute('data-label', 'Department');
-        deptCell.textContent = record.department || 'N/A';
-
-        const jobRoleCell = document.createElement('td');
-        jobRoleCell.setAttribute('data-label', 'Job Role');
-        jobRoleCell.textContent = record.job_role || 'N/A';
-
-        const startDateCell = document.createElement('td');
-        startDateCell.setAttribute('data-label', 'Start Date');
-        startDateCell.textContent = formatDate(record.job_start_date);
-
-        const statusCell = document.createElement('td');
-        statusCell.setAttribute('data-label', 'Status');
-        const statusSpan = document.createElement('span');
-        statusSpan.className = `status-badge ${record.status.toLowerCase()}`;
-        statusSpan.textContent = record.status;
-        statusCell.appendChild(statusSpan);
-
-        const actionCell = document.createElement('td');
-        actionCell.className = 'action-buttons';
-        actionCell.setAttribute('data-label', 'Actions');
-        const viewButton = document.createElement('button');
-        viewButton.className = 'btn';
-        viewButton.title = 'View';
-        viewButton.innerHTML = '<i class="fas fa-eye"></i> View';
-        viewButton.onclick = () => viewRecord(record.id);
-        actionCell.appendChild(viewButton);
-
-        row.appendChild(employeeCell);
-        row.appendChild(deptCell);
-        row.appendChild(jobRoleCell);
-        row.appendChild(startDateCell);
-        row.appendChild(statusCell);
-        row.appendChild(actionCell);
-
-        onboardingTable.appendChild(row);
-    });
-}
-
-async function loadData() {
-    const noDataMessage = document.getElementById('no-data-message');
-    noDataMessage.style.display = 'flex';
-    noDataMessage.textContent = 'Loading...';
-    try {
-        const response = await fetch('http://localhost:3000/api/onboarding');
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        noDataMessage.textContent = 'Loading...';
+        try {
+            const response = await fetch('http://localhost:3000/api/onboarding');
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            const responseData = await response.json();
+            console.log('Fetched data:', responseData);
+            allRecords = responseData.data; // Access the 'data' property
+            displayRecords(allRecords);
+            populateDepartmentFilter(allRecords);
+        } catch (error) {
+            console.error('Error loading data:', error.message, error.stack);
+            noDataMessage.style.display = 'flex';
+            noDataMessage.textContent = `Error loading data: ${error.message}`;
         }
-        const responseData = await response.json();
-        console.log('Fetched data:', responseData);
-        allRecords = responseData.data; // Access the 'data' property
-        displayRecords(allRecords);
-        populateDepartmentFilter(allRecords);
-    } catch (error) {
-        console.error('Error loading data:', error.message, error.stack);
-        noDataMessage.style.display = 'flex';
-        noDataMessage.textContent = `Error loading data: ${error.message}`;
     }
-}
 
-function populateDepartmentFilter(records) {
-    const departmentFilter = document.getElementById('departmentFilter');
-    const departments = new Set();
-    const existingOptions = Array.from(departmentFilter.options).map(opt => opt.value);
-    
-    records.forEach(record => {
-        if (record.department && !existingOptions.includes(record.department)) {
-            departments.add(record.department);
+    function populateDepartmentFilter(records) {
+        const departmentFilter = document.getElementById('departmentFilter');
+        const departments = new Set();
+        const existingOptions = Array.from(departmentFilter.options).map(opt => opt.value);
+        
+        records.forEach(record => {
+            if (record.department && !existingOptions.includes(record.department)) {
+                departments.add(record.department);
+            }
+        });
+        
+        departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept;
+            option.textContent = dept;
+            departmentFilter.appendChild(option);
+        });
+    }
+
+    function filterTable() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        const departmentFilter = document.getElementById('departmentFilter').value;
+
+        const filteredRecords = allRecords.filter(record => {
+            const matchesSearch = 
+                (record.full_name && record.full_name.toLowerCase().includes(searchTerm)) ||
+                (record.department && record.department.toLowerCase().includes(searchTerm)) ||
+                (record.job_role && record.job_role.toLowerCase().includes(searchTerm));
+            
+            const matchesStatus = !statusFilter || (record.status && record.status === statusFilter);
+            const matchesDepartment = !departmentFilter || (record.department && record.department === departmentFilter);
+            
+            return matchesSearch && matchesStatus && matchesDepartment;
+        });
+        
+        displayRecords(filteredRecords);
+    }
+
+    async function viewRecord(id) {
+        currentIndex = id;
+        try {
+            const response = await fetch(`http://localhost:3000/api/onboarding/${id}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            const record = await response.json();
+            const modalBody = document.getElementById('view-modal-body');
+            const fileFields = ['profilePic', 'idProof', 'sscCertificate', 'interCertificate', 'degreeCertificate', 'experienceLetter', 'resume'];
+            modalBody.innerHTML = `
+                <div class="detail-group">
+                    <div class="detail-group-title"><i class="fas fa-user"></i> Personal Information</div>
+                    <p>
+                        <strong><i class="fas fa-user detail-icon"></i> Full Name</strong>
+                        <span class="detail-value">${record.full_name || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-envelope detail-icon"></i> Email</strong>
+                        <span class="detail-value">${record.email || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-phone detail-icon"></i> Phone Number</strong>
+                        <span class="detail-value">${record.phone || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-calendar-alt detail-icon"></i> Date of Birth</strong>
+                        <span class="detail-value">${formatDate(record.dob)}</span>
+                    </p>
+                    ${fileFields
+                        .map((field) => {
+                            const dbField = field === 'profilePic' ? 'profile_pic_name' :
+                                           field === 'idProof' ? 'id_proof_name' :
+                                           field === 'sscCertificate' ? 'ssc_certificate_name' :
+                                           field === 'interCertificate' ? 'inter_certificate_name' :
+                                           field === 'degreeCertificate' ? 'degree_certificate_name' :
+                                           field === 'experienceLetter' ? 'experience_letter_name' :
+                                           'resume_file_name';
+                            return `
+                                <p>
+                                    <strong><i class="fas ${field === 'profilePic' ? 'fa-image' : field === 'idProof' ? 'fa-id-card' : field === 'resume' ? 'fa-file-alt' : 'fa-file-alt'} detail-icon"></i> ${field
+                                        .replace(/([A-Z])/g, ' $1')
+                                        .replace(/^./, (str) => str.toUpperCase())}</strong>
+                                    <span class="detail-value">
+                                        ${record[dbField] ? record[dbField] : 'N/A'}
+                                        ${record[dbField] ? `
+                                            <span class="file-actions">
+                                                <button class="file-btn view" onclick="viewFile(${id}, '${field}')"><i class="fas fa-eye"></i> View</button>
+                                                <button class="file-btn download" onclick="downloadFile(${id}, '${field}')"><i class="fas fa-download"></i> Download</button>
+                                            </span>` : ''}
+                                    </span>
+                                </p>
+                            `;
+                        })
+                        .join('')}
+                </div>
+                <div class="detail-group">
+                    <div class="detail-group-title"><i class="fas fa-map-marker-alt"></i> Address</div>
+                    <p>
+                        <strong><i class="fas fa-road detail-icon"></i> Street Address</strong>
+                        <span class="detail-value">${record.street_address || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-city detail-icon"></i> City</strong>
+                        <span class="detail-value">${record.city || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-flag detail-icon"></i> State</strong>
+                        <span class="detail-value">${record.state || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-mail-bulk detail-icon"></i> Zip Code</strong>
+                        <span class="detail-value">${record.zip_code || 'N/A'}</span>
+                    </p>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-group-title"><i class="fas fa-university"></i> Banking Details</div>
+                    <p>
+                        <strong><i class="fas fa-university detail-icon"></i> Bank Name</strong>
+                        <span class="detail-value">${record.bank_name || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-phone detail-icon"></i> Mobile Number</strong>
+                        <span class="detail-value">${record.mobile_number || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-credit-card detail-icon"></i> Account Number</strong>
+                        <span class="detail-value">${record.account_number || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-code detail-icon"></i> IFSC Number</strong>
+                        <span class="detail-value">${record.ifsc_number || 'N/A'}</span>
+                    </p>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-group-title"><i class="fas fa-briefcase"></i> Experience</div>
+                    <p>
+                        <strong><i class="fas fa-building detail-icon"></i> Previous Company Name</strong>
+                        <span class="detail-value">${record.prev_company_name || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-user-tie detail-icon"></i> Previous Job Role</strong>
+                        <span class="detail-value">${record.prev_job_role || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-calendar-alt detail-icon"></i> Start Date</strong>
+                        <span class="detail-value">${formatDate(record.prev_employment_start)}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-calendar-alt detail-icon"></i> End Date</strong>
+                        <span class="detail-value">${formatDate(record.prev_employment_end)}</span>
+                    </p>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-group-title"><i class="fas fa-graduation-cap"></i> Education Details</div>
+                    <p>
+                        <strong><i class="fas fa-school detail-icon"></i> SSC Institution</strong>
+                        <span class="detail-value">${record.ssc_institution || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-calendar-alt detail-icon"></i> SSC Year</strong>
+                        <span class="detail-value">${record.ssc_year || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-school detail-icon"></i> Intermediate Institution</strong>
+                        <span class="detail-value">${record.inter_institution || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-calendar-alt detail-icon"></i> Intermediate Year</strong>
+                        <span class="detail-value">${record.inter_year || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-graduation-cap detail-icon"></i> Highest Degree</strong>
+                        <span class="detail-value">${record.degree || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-university detail-icon"></i> Institution</strong>
+                        <span class="detail-value">${record.institution || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-calendar-alt detail-icon"></i> Graduation Year</strong>
+                        <span class="detail-value">${record.graduation_year || 'N/A'}</span>
+                    </p>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-group-title"><i class="fas fa-ambulance"></i> Emergency Contact Details</div>
+                    <p>
+                        <strong><i class="fas fa-user detail-icon"></i> Contact Name</strong>
+                        <span class="detail-value">${record.emergency_contact_name || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-users detail-icon"></i> Relationship</strong>
+                        <span class="detail-value">${record.emergency_contact_relationship || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-phone detail-icon"></i> Phone Number</strong>
+                        <span class="detail-value">${record.emergency_contact_phone || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-map-marker-alt detail-icon"></i> Address</strong>
+                        <span class="detail-value">${record.emergency_contact_address || 'N/A'}</span>
+                    </p>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-group-title"><i class="fas fa-briefcase"></i> Job Details</div>
+                    <p>
+                        <strong><i class="fas fa-user-tie detail-icon"></i> Job Role</strong>
+                        <span class="detail-value">${record.job_role || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-calendar-alt detail-icon"></i> Start Date</strong>
+                        <span class="detail-value">${formatDate(record.job_start_date)}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-building detail-icon"></i> Department</strong>
+                        <span class="detail-value">${record.department || 'N/A'}</span>
+                    </p>
+                    <p>
+                        <strong><i class="fas fa-check-circle detail-icon"></i> Status</strong>
+                        <span class="detail-value">${record.status || 'N/A'}</span>
+                    </p>
+                </div>
+            `;
+            const acceptBtn = document.getElementById('acceptBtn');
+            const rejectBtn = document.getElementById('rejectBtn');
+            acceptBtn.style.display = record.status === 'Pending' ? 'inline-block' : 'none';
+            rejectBtn.style.display = record.status === 'Pending' ? 'inline-block' : 'none';
+            openModal('view-modal');
+        } catch (error) {
+            console.error('Error fetching record:', error.message, error.stack);
+            alert(`Error loading record: ${error.message}`);
         }
-    });
-    
-    departments.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept;
-        option.textContent = dept;
-        departmentFilter.appendChild(option);
-    });
-}
-
-function filterTable() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const statusFilter = document.getElementById('statusFilter').value;
-    const departmentFilter = document.getElementById('departmentFilter').value;
-
-    const filteredRecords = allRecords.filter(record => {
-        const matchesSearch = 
-            (record.full_name && record.full_name.toLowerCase().includes(searchTerm)) ||
-            (record.department && record.department.toLowerCase().includes(searchTerm)) ||
-            (record.job_role && record.job_role.toLowerCase().includes(searchTerm));
-        
-        const matchesStatus = !statusFilter || (record.status && record.status === statusFilter);
-        const matchesDepartment = !departmentFilter || (record.department && record.department === departmentFilter);
-        
-        return matchesSearch && matchesStatus && matchesDepartment;
-    });
-    
-    displayRecords(filteredRecords);
-}
-
-async function viewRecord(id) {
-  currentIndex = id;
-  try {
-    const response = await fetch(`http://localhost:3000/api/onboarding/${id}`);
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
-    const record = await response.json();
-    const modalBody = document.getElementById('view-modal-body');
-    const fileFields = ['profilePic', 'idProof', 'sscCertificate', 'interCertificate', 'degreeCertificate', 'experienceLetter'];
-    modalBody.innerHTML = `
-      <div class="detail-group">
-        <div class="detail-group-title"><i class="fas fa-user"></i> Personal Information</div>
-        <p>
-          <strong><i class="fas fa-user detail-icon"></i> Full Name</strong>
-          <span class="detail-value">${record.full_name || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-envelope detail-icon"></i> Email</strong>
-          <span class="detail-value">${record.email || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-phone detail-icon"></i> Phone Number</strong>
-          <span class="detail-value">${record.phone || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-calendar-alt detail-icon"></i> Date of Birth</strong>
-          <span class="detail-value">${formatDate(record.dob)}</span>
-        </p>
-        ${fileFields
-          .map((field) => {
+
+    async function viewFile(id, field) {
+        try {
+            const response = await fetch(`http://localhost:3000/api/onboarding/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            const record = await response.json();
             const dbField = field === 'profilePic' ? 'profile_pic_name' :
                            field === 'idProof' ? 'id_proof_name' :
                            field === 'sscCertificate' ? 'ssc_certificate_name' :
                            field === 'interCertificate' ? 'inter_certificate_name' :
                            field === 'degreeCertificate' ? 'degree_certificate_name' :
-                           'experience_letter_name';
-            return `
-              <p>
-                <strong><i class="fas ${field === 'profilePic' ? 'fa-image' : field === 'idProof' ? 'fa-id-card' : 'fa-file-alt'} detail-icon"></i> ${field
-                  .replace(/([A-Z])/g, ' $1')
-                  .replace(/^./, (str) => str.toUpperCase())}</strong>
-                <span class="detail-value">
-                  ${record[dbField] ? record[dbField] : 'N/A'}
-                  ${record[dbField] ? `
-                    <span class="file-actions">
-                      <button class="file-btn view" onclick="viewFile(${id}, '${field}')"><i class="fas fa-eye"></i> View</button>
-                      <button class="file-btn download" onclick="downloadFile(${id}, '${field}')"><i class="fas fa-download"></i> Download</button>
-                    </span>` : ''}
-                </span>
-              </p>
-            `;
-          })
-          .join('')}
-      </div>
-      <div class="detail-group">
-        <div class="detail-group-title"><i class="fas fa-map-marker-alt"></i> Address</div>
-        <p>
-          <strong><i class="fas fa-road detail-icon"></i> Street Address</strong>
-          <span class="detail-value">${record.street_address || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-city detail-icon"></i> City</strong>
-          <span class="detail-value">${record.city || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-flag detail-icon"></i> State</strong>
-          <span class="detail-value">${record.state || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-mail-bulk detail-icon"></i> Zip Code</strong>
-          <span class="detail-value">${record.zip_code || 'N/A'}</span>
-        </p>
-      </div>
-      <div class="detail-group">
-        <div class="detail-group-title"><i class="fas fa-university"></i> Banking Details</div>
-        <p>
-          <strong><i class="fas fa-university detail-icon"></i> Bank Name</strong>
-          <span class="detail-value">${record.bank_name || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-phone detail-icon"></i> Mobile Number</strong>
-          <span class="detail-value">${record.mobile_number || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-credit-card detail-icon"></i> Account Number</strong>
-          <span class="detail-value">${record.account_number || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-code detail-icon"></i> IFSC Number</strong>
-          <span class="detail-value">${record.ifsc_number || 'N/A'}</span>
-        </p>
-      </div>
-      <div class="detail-group">
-        <div class="detail-group-title"><i class="fas fa-briefcase"></i> Experience</div>
-        <p>
-          <strong><i class="fas fa-building detail-icon"></i> Previous Company Name</strong>
-          <span class="detail-value">${record.prev_company_name || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-user-tie detail-icon"></i> Previous Job Role</strong>
-          <span class="detail-value">${record.prev_job_role || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-calendar-alt detail-icon"></i> Start Date</strong>
-          <span class="detail-value">${formatDate(record.prev_employment_start)}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-calendar-alt detail-icon"></i> End Date</strong>
-          <span class="detail-value">${formatDate(record.prev_employment_end)}</span>
-        </p>
-      </div>
-      <div class="detail-group">
-        <div class="detail-group-title"><i class="fas fa-graduation-cap"></i> Education Details</div>
-        <p>
-          <strong><i class="fas fa-school detail-icon"></i> SSC Institution</strong>
-          <span class="detail-value">${record.ssc_institution || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-calendar-alt detail-icon"></i> SSC Year</strong>
-          <span class="detail-value">${record.ssc_year || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-school detail-icon"></i> Intermediate Institution</strong>
-          <span class="detail-value">${record.inter_institution || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-calendar-alt detail-icon"></i> Intermediate Year</strong>
-          <span class="detail-value">${record.inter_year || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-graduation-cap detail-icon"></i> Highest Degree</strong>
-          <span class="detail-value">${record.degree || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-university detail-icon"></i> Institution</strong>
-          <span class="detail-value">${record.institution || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-calendar-alt detail-icon"></i> Graduation Year</strong>
-          <span class="detail-value">${record.graduation_year || 'N/A'}</span>
-        </p>
-      </div>
-      <div class="detail-group">
-        <div class="detail-group-title"><i class="fas fa-ambulance"></i> Emergency Contact Details</div>
-        <p>
-          <strong><i class="fas fa-user detail-icon"></i> Contact Name</strong>
-          <span class="detail-value">${record.emergency_contact_name || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-users detail-icon"></i> Relationship</strong>
-          <span class="detail-value">${record.emergency_contact_relationship || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-phone detail-icon"></i> Phone Number</strong>
-          <span class="detail-value">${record.emergency_contact_phone || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-map-marker-alt detail-icon"></i> Address</strong>
-          <span class="detail-value">${record.emergency_contact_address || 'N/A'}</span>
-        </p>
-      </div>
-      <div class="detail-group">
-        <div class="detail-group-title"><i class="fas fa-briefcase"></i> Job Details</div>
-        <p>
-          <strong><i class="fas fa-user-tie detail-icon"></i> Job Role</strong>
-          <span class="detail-value">${record.job_role || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-calendar-alt detail-icon"></i> Start Date</strong>
-          <span class="detail-value">${formatDate(record.job_start_date)}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-building detail-icon"></i> Department</strong>
-          <span class="detail-value">${record.department || 'N/A'}</span>
-        </p>
-        <p>
-          <strong><i class="fas fa-check-circle detail-icon"></i> Status</strong>
-          <span class="detail-value">${record.status || 'N/A'}</span>
-        </p>
-      </div>
-    `;
-    const acceptBtn = document.getElementById('acceptBtn');
-    const rejectBtn = document.getElementById('rejectBtn');
-    acceptBtn.style.display = record.status === 'Pending' ? 'inline-block' : 'none';
-    rejectBtn.style.display = record.status === 'Pending' ? 'inline-block' : 'none';
-    openModal('view-modal');
-  } catch (error) {
-    console.error('Error fetching record:', error.message, error.stack);
-    alert(`Error loading record: ${error.message}`);
-  }
-}
-
-async function viewFile(id, field) {
-    try {
-        const response = await fetch(`http://localhost:3000/api/onboarding/${id}`);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                           field === 'experienceLetter' ? 'experience_letter_name' :
+                           'resume_file_name';
+            const fileName = record[dbField];
+            const mimeType = getMimeType(fileName);
+            if (!fileName) {
+                throw new Error('No file available to view.');
+            }
+            const fileUrl = `http://localhost:3000/api/onboarding/${id}/file/${field}`;
+            const viewModal = document.getElementById('file-view-modal');
+            const viewBody = document.getElementById('file-view-body');
+            const viewTitle = document.getElementById('file-view-title');
+            viewTitle.textContent = `Viewing: ${sanitizeFileName(fileName)}`;
+            viewBody.innerHTML = '';
+            if (mimeType.startsWith('image/')) {
+                viewBody.innerHTML = `<img src="${fileUrl}" alt="${sanitizeFileName(fileName)}" />`;
+            } else if (mimeType === 'application/pdf') {
+                viewBody.innerHTML = `<iframe src="${fileUrl}" title="${sanitizeFileName(fileName)}"></iframe>`;
+            } else {
+                throw new Error('This file type can only be downloaded.');
+            }
+            openModal('file-view-modal');
+        } catch (error) {
+            console.error('Error viewing file:', error.message, error.stack);
+            const viewBody = document.getElementById('file-view-body');
+            viewBody.innerHTML = `<p style="color: var(--error); text-align: center;">Error: ${error.message}</p>`;
+            openModal('file-view-modal');
         }
-        const record = await response.json();
-        const dbField = field === 'profilePic' ? 'profile_pic_name' :
-                       field === 'idProof' ? 'id_proof_name' :
-                       field === 'sscCertificate' ? 'ssc_certificate_name' :
-                       field === 'interCertificate' ? 'inter_certificate_name' :
-                       field === 'degreeCertificate' ? 'degree_certificate_name' :
-                       'experience_letter_name';
-        const fileName = record[dbField];
-        const mimeType = getMimeType(fileName);
-        if (!fileName) {
-            throw new Error('No file available to view.');
-        }
-        const fileUrl = `http://localhost:3000/api/onboarding/${id}/file/${field}`;
-        const viewModal = document.getElementById('file-view-modal');
-        const viewBody = document.getElementById('file-view-body');
-        const viewTitle = document.getElementById('file-view-title');
-        viewTitle.textContent = `Viewing: ${sanitizeFileName(fileName)}`;
-        viewBody.innerHTML = '';
-        if (mimeType.startsWith('image/')) {
-            viewBody.innerHTML = `<img src="${fileUrl}" alt="${sanitizeFileName(fileName)}" />`;
-        } else if (mimeType === 'application/pdf') {
-            viewBody.innerHTML = `<iframe src="${fileUrl}" title="${sanitizeFileName(fileName)}"></iframe>`;
-        } else {
-            throw new Error('This file type can only be downloaded.');
-        }
-        openModal('file-view-modal');
-    } catch (error) {
-        console.error('Error viewing file:', error.message, error.stack);
-        const viewBody = document.getElementById('file-view-body');
-        viewBody.innerHTML = `<p style="color: var(--error); text-align: center;">Error: ${error.message}</p>`;
-        openModal('file-view-modal');
     }
-}
 
-function downloadFile(id, field) {
-    window.location.href = `http://localhost:3000/api/onboarding/${id}/file/${field}`;
-}
+    function downloadFile(id, field) {
+        window.location.href = `http://localhost:3000/api/onboarding/${id}/file/${field}`;
+    }
 
-async function acceptRecord() {
-    if (currentIndex === -1) return;
-    try {
-        const response = await fetch(`http://localhost:3000/api/onboarding/${currentIndex}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Active' })
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+    async function acceptRecord() {
+        if (currentIndex === -1) return;
+        try {
+            const response = await fetch(`http://localhost:3000/api/onboarding/${currentIndex}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Active' })
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            alert('Employee record accepted successfully.');
+            loadData();
+            closeModal('view-modal');
+        } catch (error) {
+            console.error('Error accepting record:', error.message, error.stack);
+            alert(`Error accepting record: ${error.message}`);
         }
-        alert('Employee record accepted successfully.');
+    }
+
+    async function rejectRecord() {
+        if (currentIndex === -1) return;
+        try {
+            const response = await fetch(`http://localhost:3000/api/onboarding/${currentIndex}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Rejected' })
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            alert('Employee record rejected.');
+            loadData();
+            closeModal('view-modal');
+        } catch (error) {
+            console.error('Error rejecting record:', error.message, error.stack);
+            alert(`Error rejecting record: ${error.message}`);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
         loadData();
-        closeModal('view-modal');
-    } catch (error) {
-        console.error('Error accepting record:', error.message, error.stack);
-        alert(`Error accepting record: ${error.message}`);
-    }
-}
+        document.getElementById('acceptBtn').addEventListener('click', acceptRecord);
+        document.getElementById('rejectBtn').addEventListener('click', rejectRecord);
 
-async function rejectRecord() {
-    if (currentIndex === -1) return;
-    try {
-        const response = await fetch(`http://localhost:3000/api/onboarding/${currentIndex}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Rejected' })
+        const searchInput = document.getElementById('searchInput');
+        let debounceTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(filterTable, 300);
         });
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        alert('Employee record rejected.');
-        loadData();
-        closeModal('view-modal');
-    } catch (error) {
-        console.error('Error rejecting record:', error.message, error.stack);
-        alert(`Error rejecting record: ${error.message}`);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    loadData();
-    document.getElementById('acceptBtn').addEventListener('click', acceptRecord);
-    document.getElementById('rejectBtn').addEventListener('click', rejectRecord);
-
-    const searchInput = document.getElementById('searchInput');
-    let debounceTimeout;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(filterTable, 300);
     });
-});
 </script>
 </body>
 </html>
