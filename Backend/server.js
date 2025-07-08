@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 // app.use('/uploads', express.static(path.join(__dirname', 'Uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'Uploads')));
 
 const pool = new Pool({
   user: 'postgres',
@@ -374,6 +374,14 @@ app.get('/api/employees/active', async (req, res) => {
   } catch (error) {
     console.error('Error fetching active employees:', error);
     res.status(500).json({ error: 'Failed to fetch active employees' });
+  }
+});
+app.get('/api/uploads/:filename', (req, res) => {
+  const filePath = path.join(__dirname, 'Uploads', req.params.filename);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send('File not found');
   }
 });
 
