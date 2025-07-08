@@ -425,10 +425,10 @@
         </main>
     </div>
 
-    <div id="modal" class="modal">
+    <!-- <div id="modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <img id="modalProfilePic" class="profile-pic" src="" alt="Profile Picture" onerror="this.src='https://via.placeholder.com/50'; this.alt='No Profile Picture'">
+                <img id="modalProfilePic" class="profile-pic" src= alt="Profile Picture" onerror="this.src='https://via.placeholder.com/50'; this.alt='No Profile Picture'">
                 <div class="info-container">
                     <h2 id="modalHeader">Employee Name</h2>
                     <span id="modalEmpId" class="emp-id"></span>
@@ -437,7 +437,7 @@
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
-    </div>
+    </div> -->
 
     <script>
         function formatDate(dateString) {
