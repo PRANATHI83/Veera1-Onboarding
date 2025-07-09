@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Backend
+    ports:
+      - "3056:3056"
+    depends_on:
+      - postgrest
+    environment:
+      - PGHOST=postgrest
+      - PGUSER=postgres
+      - PGPASSWORD=admin234
+      - PGDATABASE=employee_db
+      - PGPORT=5432
+
+  frontend:
+    build:
+      context: ./Frontend
+    ports:
+      - "8092:80"
+
+  hr:
+    build:
+      context: ./HR
+    ports:
+      - "8093:80"
+
+  staff:
+    build:
+      context: ./Staff
+    ports:
+      - "8094:80"
+
+  postgrest:
+    image: postgres:14
+    ports:
+      - "2000:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin234
+      POSTGRES_DB: employee_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  pgdata:
+
