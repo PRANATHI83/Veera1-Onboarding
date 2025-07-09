@@ -1190,7 +1190,7 @@ h3 {
     async function rejectRecord() {
         if (currentIndex === -1) return;
         try {
-            const response = await fetch(`http://localhost:3000/api/onboarding/${currentIndex}`, {
+            const response = await fetch(`http://13.235.79.61:3056/api/onboarding/${currentIndex}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'Rejected' })

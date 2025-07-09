@@ -1190,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form.resume.files[0]) formData.append('resume', form.resume.files[0]);
 
     try {
-      const response = await fetch('http://localhost:3000/api/employees', {
+      const response = await fetch('http://13.235.79.61:3056/api/employees', {
         method: 'POST',
         body: formData
       });
